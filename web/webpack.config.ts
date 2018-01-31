@@ -18,7 +18,7 @@ const config: webpack.Configuration = {
   ],
   output: {
     path: path.join(__dirname, "dist"),
-    publicPath: "/",  
+    publicPath: "/",
     filename: "scripts/[id]-[hash].js",
     chunkFilename: "scripts/[id]-[hash].js",
   },

@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig",
+  "compilerOptions": {
+    "declaration": true,
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
+    "strictNullChecks": false,
+    "rootDir": "tmp/townies_api",
+    "outDir": "web/src/infrastructure/townies_api"
+  },
+  "include": [
+    "tmp/townies_api"
+  ]
+}

@@ -8,8 +8,10 @@
   "dependencies": {
     "copy-webpack-plugin": "^4.0.1",
     "file-loader": "^0.11.2",
+    "portable-fetch": "^3.0.0",
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
+    "url": "^0.11.0",
     "whatwg-fetch": "^2.0.3"
   },
   "devDependencies": {

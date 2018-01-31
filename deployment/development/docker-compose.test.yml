@@ -1,0 +1,30 @@
+version: '3.4'
+
+services:
+
+  sonar-scanner:
+    image: developertown/sonar-scanner:3.0.3.778-3
+    command: bash -c "./deployment/development/wait-for-it.sh db:5432 && yarn && npm run test:coverage ; cd /project && sonar-scanner"
+    networks:
+      - backoffice
+    links:
+      - db
+    environment:
+      NODE_ENV: test
+      DB_HOST: db
+      DB_NAME: dt-townies-test
+      DB_USER: dt-townies
+      DB_PASS: seinwotdt
+      DB_PORT: 5432
+    volumes:
+      - ../../:/project
+      - sonar-cache:/root/.sonar
+
+  api:
+    command: bash -c 'mkdir -p coverage && yarn && npm run test:watch'
+    environment:
+      NODE_ENV: test
+      DB_NAME: dt-townies-test
+
+volumes:
+ sonar-cache:

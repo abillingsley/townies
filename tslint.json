@@ -2,9 +2,9 @@
   "extends": "tslint:recommended",
   "rules": {
     "curly": true,
-    "no-empty-interface": false,
     "object-literal-sort-keys": false,
-    "await-promise": true,
+    "await-promise": [true, "Bluebird"],
+    "no-string-literal": false,
     "no-unused-variable": true
   },
   "jsRules": {
