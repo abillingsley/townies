@@ -8,6 +8,7 @@ COPY api/package.json /app/api/package.json
 COPY core/package.json /app/core/package.json
 COPY config/package.json /app/config/package.json
 COPY infrastructure/package.json /app/infrastructure/package.json
+COPY web/package.json /app/web/package.json
 RUN yarn
 
 # ---- Development ----
