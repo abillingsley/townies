@@ -150,3 +150,4 @@ There is more to do here but in the current code base we run 7MB for the web con
 - [ ] Finish module readmes
 - [ ] Provide a basic feature walkthrough to explain and show off the code structure and tooling
 - [ ] Refactor project script to remove hard coded behaviors, look at templating it out with mustache or something else simple
+- [ ] Write a guide to starting a new project that includes things like builds, releases, and other sprint 0 tasks
