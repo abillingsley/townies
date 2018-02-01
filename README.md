@@ -5,41 +5,41 @@
 ```
 project/
 ├── core/
-│       ├── interfaces
-│       └── domain-concept/
-│                 ├── entities
-│                 ├── domain services
-│                 └── request-response
+│   ├── interfaces
+│   └── domain-concept/
+│       ├── entities
+│       ├── domain services
+│       └── request-response
 ├── config/
 ├── api/
-│       ├── web framework
-│       └── app services
+│   ├── web framework
+│   └── app services
 ├── deployment/
-│       ├── development/
-│       ├── k8s/
-│       ├── rancher/
-│       └── xyz_tool/
+│   ├── development/
+│   ├── k8s/
+│   ├── rancher/
+│   └── xyz_tool/
 ├── infrastructure/
-│       ├── logging/
-│       ├── postgres/
-│       ├── in_memory/
-│       └── xyz_implementation/
+│   ├── logging/
+│   ├── postgres/
+│   ├── in_memory/
+│   └── xyz_implementation/
 ├── native/
 ├── scripts/
-│       ├── sync_swagger_api.sh
-│       └── utility things
+│   ├── sync_swagger_api.sh
+│   └── utility things
 ├── web/
-│      └──  front end things
-├──.env
-├──.envrc
-├──.node-version
-├──Dockerfile.api
-├──Dockerfile.web
-├──package.json
-├──sonar-project.properties
-├──townies
-├──tsconfig.json
-└──tslint.json
+│   └── front end things
+├── .env
+├── .envrc
+├── .node-version
+├── Dockerfile.api
+├── Dockerfile.web
+├── package.json
+├── sonar-project.properties
+├── townies
+├── tsconfig.json
+└── tslint.json
 ```
 
 ## Getting Started with Docker
