@@ -2,23 +2,46 @@
 
 ## Code Organization
 
-* api
-* config
-* deployment
-* infrastructure
-* native
-* scripts
-* web
-* .env
-* .envrc
-* .node-version
-* Dockerfile.api
-* Dockerfile.web
-* package.json
-* sonar-project.properties
-* townies
-* tsconfig.json
-* tslint.json
+```
+project/
+├── core/
+│       ├── interfaces
+│       └── domain-concept/
+│                 ├── entities
+│                 ├── domain services
+│                 └── request-response
+├── config/
+├── api/
+│       ├── web framework
+│       └── app services
+├── deployment/
+│       ├── development/
+│       ├── k8s/
+│       ├── rancher/
+│       └── xyz_tool/
+├── infrastructure/
+│       ├── logging/
+│       ├── postgres/
+│       ├── in_memory/
+│       └── xyz_implementation/
+├── native/
+├── scripts/
+│       ├── sync_swagger_api.sh
+│       └── utility things
+├── web/
+│      ├── front end things
+├──.env
+├──.envrc
+├──.node-version
+├──Dockerfile.api
+├──Dockerfile.web
+├──package.json
+├──sonar-project.properties
+├──townies
+├──tsconfig.json
+└──tslint.json
+```
+
 ## Getting Started with Docker
 
 1.  [Install Docker](https://www.docker.com/products/overview)
