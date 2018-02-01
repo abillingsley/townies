@@ -11,13 +11,15 @@
     "native:android": "cd native && react-native run-android",
     "api:start": "cd api && gulp",
     "web:start": "cd web && NODE_ENV=development && webpack-dev-server",
-    "reset:modules": "rm -rf node_modules api/node_modules infrastructure/node_modules core/node_modules native/node_modules web/node_modules && yarn",
-    "test:watch": "jest --watchAll --notify",
+    "reset:modules": "rm -rf node_modules api/node_modules infrastructure/node_modules core/node_modules web/node_modules config/node_modules web/node_modules && yarn",
+    "test": "yarn && cd infrastructure && npm run db:migrate && cd ../ && TEST_REPORT_PATH=./coverage NODE_ENV=test jest $@",
+    "test:watch": "npm run test -- --watchAll",
     "test:coverage": "npm run test -- --coverage=true"
   },
   "author": "",
   "license": "MIT",
   "workspaces": [
+    "config",
     "core",
     "native",
     "infrastructure",
@@ -29,10 +31,10 @@
     "jest": "^22.0.0",
     "jest-junit-reporter": "^1.1.0",
     "ts-jest": "^21.2.4",
+    "tslint": "^5.9.1",
     "typescript": "^2.6.2"
   },
   "jest": {
-    "rootDir": ".",
     "modulePaths": [
       "<rootDir>"
     ],
@@ -55,7 +57,10 @@
     ],
     "testResultsProcessor": "./node_modules/jest-junit-reporter",
     "collectCoverageFrom": [
-      "<rootDir>/**/*.{ts,tsx,js}"
+      "api/**/*.{ts,tsx,js}",
+      "infrastructure/**/*.{ts,tsx,js}",
+      "web/**/*.{ts,tsx,js}",
+      "core/**/*.{ts,tsx,js}"
     ],
     "coverageDirectory": "./coverage",
     "coverageReporters": [

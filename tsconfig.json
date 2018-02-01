@@ -16,10 +16,13 @@
     "sourceMap": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "target": "es2015",
+    "target": "es2017",
     "module": "commonjs",
     "jsx": "react",
     "lib": [
+      "ES2015",
+      "ES2016",
+      "ES2017",
       "DOM",
       "ESnext"
     ],
@@ -28,11 +31,15 @@
     "rootDir": ".",
     "paths": {
       "~/*": ["*"]
-    }
+    },
+    "typeRoots": [
+      "node_modules/@types",
+      "node_modules/objection/typings"
+    ]
   },
   "exclude": [
     "node_modules",
     "dist",
     "web/webpack.config.ts"
   ]
-} 
+}

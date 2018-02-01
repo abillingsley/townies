@@ -1,27 +1,24 @@
-require('module-alias').addAlias("~", __dirname + "/../../")
+"use strict";
+/* tslint:disable:no-var-requires */
+require("module-alias").addAlias("~", __dirname + "/../../");
+/* tslint:enable:no-var-requires */
 
-import * as express from "express";
-import * as bodyParser from "body-parser";
-import controllers from "./controllers";
+import { App } from "~/config";
+import { ILogger } from "~/core";
+import { ConsoleLogger } from "~/infrastructure";
+import { Server } from "./server";
 
-const app = express();
-const port = process.env.PORT || 9229;
+// TODO: configure with DI
+const logger: ILogger = new ConsoleLogger();
+const server = new Server({ port: App.port });
 
-app.use(bodyParser.json());
-
-app.use((req: any, res: any, next: any) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept");
-  next(); 
-});
-
-app.get('/', (req: any, res: any) => {
-  res.json('Example MonoRepo API');
-});
-
-app.use('/api', controllers);
-
-app.listen(port);
-
-export default app;
+(async () => {
+  try {
+    logger.info("Initializing API");
+    await server.start();
+    logger.info("API initialized");
+  } catch (err) {
+    logger.error(err);
+    process.exit(1);
+  }
+})();

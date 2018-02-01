@@ -1,0 +1,470 @@
+#!/usr/bin/env bash
+
+REQUIRED_BASE_TOOLS=(
+  "direnv"
+)
+
+REQUIRED_DEV_TOOLS=(
+  "docker"
+  "docker-compose"
+)
+
+REQUIRED_DEPLOY_TOOLS=(
+  "kubectl"
+)
+
+COMPOSE_PROJ_NAME="dt-townies"
+COMPOSE_SVCS_TO_BUILD=(
+  "api"
+  "web"
+)
+COMPOSE_SVC_TO_LAUNCH="web"
+COMPOSE_SVCS_TO_WATCH="web api db"
+
+DOCKER_COMPOSE="docker-compose -p ${COMPOSE_PROJ_NAME} -f $PROJECT_HOME/deployment/development/docker-compose.yml -f $PROJECT_HOME/deployment/development/docker-compose.dev.yml"
+DOCKER_COMPOSE_TEST="docker-compose -p ${COMPOSE_PROJ_NAME} -f $PROJECT_HOME/deployment/development/docker-compose.yml -f $PROJECT_HOME/deployment/development/docker-compose.test.yml"
+
+function map_env_to_k8s_namespace() {
+  local env=$@
+  case $env in
+    ci)
+      echo "__"
+    ;;
+    staging)
+      echo "__"
+    ;;
+    prod)
+      echo "__"
+    ;;
+    *)
+      echo "ERROR: unknown env can't be mapped to a kubernetes namespace: $1"
+      exit 1
+    ;;
+  esac
+}
+
+function _verify_tools() {
+  local REQUIRED_TOOLS=("$@")
+
+  for x in "${REQUIRED_TOOLS[@]}"; do
+    type -P "$x" >/dev/null
+
+    if [ $? -ne 0 ]; then
+      echo "$x is required, but wasn't found"
+      exit 1
+    fi
+  done
+}
+
+function _base_health_check() {
+  _verify_tools "${REQUIRED_BASE_TOOLS[@]}"
+
+  # Verify correct environment is set
+  if [ -z "${PROJECT_HOME}" ]; then
+  
+    exit 1
+  fi
+}
+
+function _deploy_env_health_check() {
+  _base_health_check
+  _verify_tools "${REQUIRED_DEPLOY_TOOLS[@]}"
+}
+
+function _dev_env_health_check() {
+  _base_health_check
+  _verify_tools "${REQUIRED_DEV_TOOLS[@]}"
+}
+
+function stop_dev() {
+  _dev_env_health_check
+
+  echo "Stopping dev environment..."
+
+  $DOCKER_COMPOSE down --remove-orphans
+}
+
+function start_dev() {
+  _dev_env_health_check
+
+  echo "Starting dev environment..."
+
+  for svc in "${COMPOSE_SVCS_TO_BUILD[@]}"; do
+    $DOCKER_COMPOSE build $svc || exit 1
+  done
+
+  trap stop_dev EXIT
+  $DOCKER_COMPOSE up -d web || exit 1
+  $DOCKER_COMPOSE logs -f --tail=100 $COMPOSE_SVCS_TO_WATCH || exit 1
+}
+
+function start_test_watching(){
+  $DOCKER_COMPOSE_TEST run api
+}
+
+function start_dev_api_shell() {
+  $DOCKER_COMPOSE exec api bash
+}
+function start_dev_nginx_shell() {
+  $DOCKER_COMPOSE exec web bash
+}
+
+function start_dev_db_shell() {
+  $DOCKER_COMPOSE exec db bash
+}
+
+function start_dev_redis_shell() {
+  $DOCKER_COMPOSE exec redis sh
+}
+
+function start_dev_db_psql() {
+  $DOCKER_COMPOSE exec db su - postgres -c 'psql video_application'
+}
+
+function _dev_api() {
+  local DEV_API_ARGS=("$@")
+  case $DEV_API_ARGS in
+    shell)
+      start_dev_api_shell
+    ;;
+    *)
+      help
+      exit 1
+    ;;
+  esac
+}
+
+function _dev_db() {
+  local DEV_DB_ARGS=("$@")
+  case $DEV_DB_ARGS in
+    shell)
+      start_dev_db_shell
+    ;;
+    psql)
+      start_dev_db_psql
+    ;;
+    *)
+      help
+      exit 1
+    ;;
+  esac
+}
+
+function cleanup_dump() {
+  if [ -f $dmpFile ]; then
+    echo "Cleaning up database dump ${dmpFile}"
+    rm -f ${dmpFile}
+  fi
+}
+
+function sync_db_to_dev() {
+  local srcEnv=$1
+  
+  local prefix=$(date "+%Y-%m-%dT%H.%M.%S")
+  local dumpFileName="${prefix}_${srcEnv}_dump.sql"
+  dmpFile="${PROJECT_HOME}/tmp/dbdumps/${dumpFileName}"  # Purposefully not local for cleanup function
+  local namespace=$(map_env_to_k8s_namespace ${srcEnv})
+
+  echo "Dumping database from ${env} to ${dmpFile}..."
+  kubectl -n $namespace exec -it $(_podname ${namespace} db)> ${dmpFile} -- su - postgres -c "pg_dump -c --if-exists --inserts -U video_application video_application" \
+    && trap cleanup_dump EXIT
+
+  echo "Dropping local schema..."
+  $DOCKER_COMPOSE exec --user postgres db >/dev/null -- psql video_application -e -c \
+    'BEGIN; DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO postgres; GRANT ALL ON SCHEMA public TO public; COMMIT;'
+  
+  echo "Loading dump file into local db..."
+  $DOCKER_COMPOSE exec --user postgres db >/dev/null psql -q -f /dbdumps/$dumpFileName video_application
+}
+
+function sync_db_to_ci() {
+  local srcEnv=$1
+  
+  set -x
+
+  local prefix=$(date "+%Y-%m-%dT%H.%M.%S")
+  local dumpFileName="${prefix}_${srcEnv}_dump.sql"
+  dmpFile="${PROJECT_HOME}/tmp/dbdumps/${dumpFileName}"  # Purposefully not local for cleanup function
+  local namespace=$(map_env_to_k8s_namespace ${srcEnv})
+  local targetNamespace=$(map_env_to_k8s_namespace ci)
+
+  echo "Dumping database from ${env} to ${dmpFile}..."
+  kubectl -n $namespace exec -it $(_podname ${namespace} db)> ${dmpFile} -- su - postgres -c "pg_dump -c --if-exists --inserts -U video_application" \
+    && trap cleanup_dump EXIT
+
+  echo "Dropping ci schema..."
+  kubectl -n ___ exec -it $(_podname ${targetNamespace} db) -- su - postgres -c \
+    "psql video_application -e -c 'BEGIN; DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO postgres; GRANT ALL ON SCHEMA public TO public; COMMIT;'"
+
+  echo "Loading dump file into local db..."
+  cat $dmpFile | kubectl -n ____ exec -i $(_podname ${targetNamespace} db) -- su - postgres -c \
+    "psql video_application"
+}
+
+function dump_db_to_file() {
+  local srcEnv=$1
+
+  local prefix=$(date "+%Y-%m-%dT%H.%M.%S")
+  local dmpFile="${PROJECT_HOME}/tmp/dbdumps/${prefix}_${srcEnv}_dump.sql"
+  local namespace=$(map_env_to_k8s_namespace ${srcEnv})
+
+  echo "Dumping database from ${env} to ${dmpFile}..."
+  kubectl -n $namespace exec -it $(_podname ${namespace} db)> ${dmpFile} -- su - postgres -c "pg_dump -c --if-exists --inserts video_application"
+}
+
+function _dev_task() {
+  local svc=$1; shift
+  local task=$1; shift
+
+  # 3 oddballs here!
+  if [ "$svc" == "start" ]; then
+    start_dev
+    exit 0
+  elif [ "$svc" == "stop" ]; then
+    stop_dev
+    exit 0
+  elif [ "$svc" == "test" ]; then
+    start_test_watching
+  fi
+
+  case $task in
+    start)
+      start_dev
+    ;;
+    stop)
+      stop_dev
+    ;;
+    test)
+      start_test_watching
+    ;;
+    shell)
+      case $svc in
+        api)
+          start_dev_api_shell
+        ;;
+        nginx)
+          start_dev_nginx_shell
+        ;;
+        db)
+          start_dev_db_shell
+        ;;
+        redis)
+          start_dev_redis_shell
+        ;;
+      esac
+    ;;
+    logs)
+      local cmd_prefix="kubectl -n $namespace logs --tail=200"
+      case $svc in
+        api)
+          $DOCKER_COMPOSE logs -f --tail=100 api
+        ;;
+        nginx)
+          $DOCKER_COMPOSE logs -f --tail=100 web
+        ;;
+        db)
+          $DOCKER_COMPOSE logs -f --tail=100 db
+        ;;
+        redis)
+          $DOCKER_COMPOSE logs -f --tail=100 redis
+        ;;
+      esac
+    ;;
+    cli)
+      set -x
+      case $svc in
+        redis)
+          $DOCKER_COMPOSE exec redis redis-cli
+        ;;
+      esac
+    ;;
+    psql)
+      case $svc in
+        db)
+          start_dev_db_psql
+        ;;
+      esac
+    ;;
+    port-forward)
+      case $svc in
+        db)
+          echo "ERROR: Database port-forwarding is not available for local, development environments."
+          echo "       This postgres instance is already exposed on 127.0.0.1:5433 for local development use."
+          exit 1
+        ;;
+      esac
+    ;;
+    sync-to-dev)
+      case $svc in
+        db)
+          echo "ERROR: This command is only applicable to the SOURCE environment to sync FROM."
+          exit 1
+        ;;
+      esac
+    ;;
+  esac
+}
+
+function _env_task() {
+  local env=$1; shift
+  local svc=$1; shift
+  local task=$1; shift
+
+  if [ "$env" == "dev" ]; then
+    _dev_task "$svc" "$task"
+  else
+    _k8s_task $env $svc $task
+  fi
+}
+
+# Takes 2 args - namespace, and "app" name (used as a label filter in `-lapp=$app`))
+# If the service has multiple pods, the "first" one is simply returned
+function _podname() {
+  local namespace=$1
+  local app=$2
+
+  echo $(kubectl -n $namespace get pods -lapp=$app -o jsonpath='{.items[0].metadata.name}')
+}
+
+function _k8s_task() {
+  local env=$1; shift
+  local svc=$1; shift
+  local task=$1; shift
+
+  local namespace=$(map_env_to_k8s_namespace $env)
+  
+  case $task in
+    shell)
+      local cmd_prefix="kubectl -n $namespace exec -it"
+      case $svc in
+        api)
+          $cmd_prefix $(_podname $namespace app) -c api bash
+        ;;
+        nginx)
+          $cmd_prefix $(_podname $namespace app) -c frontend bash
+        ;;
+        db)
+          $cmd_prefix $(_podname $namespace db) -- bash
+        ;;
+        redis)
+          $cmd_prefix $(_podname $namespace redis) -- sh
+        ;;
+      esac
+    ;;
+    logs)
+      local cmd_prefix="kubectl -n $namespace logs --tail=200"
+      case $svc in
+        api)
+          $cmd_prefix -f deployment/app -c api
+        ;;
+        nginx)
+          $cmd_prefix -f deployment/app -c frontend
+        ;;
+        db)
+          $cmd_prefix -f deployment/db -c db
+        ;;
+        redis)
+          $cmd_prefix -f deployment/redis -c redis
+        ;;
+      esac
+    ;;
+    cli)
+      case $svc in
+        redis)
+          local cmd_prefix="kubectl -n $namespace exec -it"
+          $cmd_prefix $(_podname $namespace redis) -- redis-cli
+        ;;
+      esac
+    ;;
+    psql)
+      case $svc in
+        db)
+          local cmd_prefix="kubectl -n $namespace exec -it"
+          $cmd_prefix $(_podname $namespace db) -- su - postgres -c 'psql -U video_application'
+        ;;
+      esac
+    ;;
+    port-forward)
+      case $svc in
+        db)
+          local cmd_prefix="kubectl -n $namespace"
+          $cmd_prefix port-forward $(_podname $namespace db) 15432:5432
+        ;;
+      esac
+    ;;
+    sync-to-dev)
+      case $svc in
+        db)
+          sync_db_to_dev $env
+        ;;
+      esac
+    ;;
+    sync-to-ci)
+      case $svc in
+        db)
+          sync_db_to_ci $env
+        ;;
+      esac
+    ;;
+    dump)
+      case $svc in
+        db)
+          dump_db_to_file $env
+        ;;
+      esac
+    ;;
+  esac
+}
+
+function help() {
+  echo "Usage: $0 option [option...]";
+  echo ""
+  echo "Local environment-only actions:"
+  echo "    dev start:             Starts the local development environment"
+  echo "    dev stop:              Stops the local development environment"
+  echo "    dev test:              Starts the test watching process"
+  echo ""
+  echo "Other actions:"
+  echo "  <env> may be one of dev, ci, staging or prod"
+  echo "    <env> api shell:       Runs bash inside a running api container in <env>"
+  echo "    <env> api logs:        Tails the console logs of a running api container in <env>"
+  echo ""
+  echo "    <env> db shell:        Runs bash inside a running db container in <env>"
+  echo "    <env> db logs:         Tails the console logs of a running db container in <env>"
+  echo "    <env> db psql:         Runs psql inside a running db container in <env>"
+  echo "    <env> db port-forward: (k8s only) Forwards localhost:15432 to a running db container in <env>"
+  echo "    <env> db sync-to-dev:  (k8s only) Dumps the db in <env> and overwrites local dev db with the contents"
+  echo "    <env> db sync-to-ci:   (k8s only) Dumps the db in <env> and overwrites ci db with the contents"
+  echo "    <env> db dump:         (k8s only) Dumps the db in <env> to a local file"
+  echo ""
+  echo "    <env> nginx shell:     Runs bash inside a running nginx container in <env>"  
+  echo "    <env> nginx logs:      Tails the console logs of a running nginx container in <env>"
+  echo ""
+  echo "    <env> redis shell:     Runs sh inside a running redis container in <env>"  
+  echo "    <env> redis logs:      Tails the console logs of a running redis container in <env>"
+  echo "    <env> redis cli:       Runs redis-cli inside a running redis container in <env>"
+  echo ""
+  echo "Miscellaneous functions:"
+  echo "    help:                  These instructions."
+  echo ""
+}
+
+arg=$1
+case $arg in
+  dev)
+    _env_task "$@"
+  ;;
+  ci)
+    _env_task "$@"
+  ;;
+  staging)
+    _env_task "$@"
+  ;;
+  prod)
+    _env_task "$@"
+  ;;
+  *)
+    help
+    exit 1
+  ;;
+esac

@@ -1,0 +1,99 @@
+version: '3.4'
+
+services:
+  web:
+    build:
+      context: ../../
+      dockerfile: Dockerfile.web
+      target: development
+    restart: on-failure
+    volumes:
+      - ../../package.json:/app/package.json
+      - ../../tslint.json:/app/tslint.json
+      - ../../tsconfig.json:/app/tsconfig.json
+      - ../../yarn.lock:/app/yarn.lock
+      - ../../web/src:/app/web/src
+      - ../../web/package.json:/app/web/package.json
+      - ../../web/webpack.config.ts:/app/web/webpack.config.ts
+      - ../../config/src:/app/config/src
+      - ../../config/index.ts:/app/config/index.ts
+      - ../../config/package.json:/app/config/package.json
+      - ../../core/src:/app/core/src
+      - ../../core/index.ts:/app/core/index.ts
+      - ../../core/package.json:/app/core/package.json
+      - ../../infrastructure/src:/app/infrastructure/src
+      - ../../infrastructure/index.ts:/app/infrastructure/index.ts
+      - ../../infrastructure/package.json:/app/infrastructure/package.json
+      - global-node_modules:/app/node_modules
+      - core-node_modules:/app/core/node_modules
+      - config-node_modules:/app/config/node_modules
+      - infrastructure-node_modules:/app/infrastructure/node_modules
+      - web-node_modules:/src/node_modules
+    networks:
+      - internet
+      - backoffice
+    links:
+      - api
+
+  api:
+    build:
+      context: ../../
+      dockerfile: Dockerfile.api
+      target: development
+    restart: on-failure
+    environment:
+      DB_HOST: db
+      DB_USER: dt-townies
+      DB_PASS: seinwotdt
+      DB_PORT: 5432
+    networks:
+      - backoffice
+    volumes:
+      - ../../package.json:/app/package.json
+      - ../../tslint.json:/app/tslint.json
+      - ../../tsconfig.json:/app/tsconfig.json
+      - ../../yarn.lock:/app/yarn.lock
+      - ../../api/src:/app/api/src
+      - ../../api/package.json:/app/api/package.json
+      - ../../config/src:/app/config/src
+      - ../../config/index.ts:/app/config/index.ts
+      - ../../config/package.json:/app/config/package.json
+      - ../../core/src:/app/core/src
+      - ../../core/index.ts:/app/core/index.ts
+      - ../../core/package.json:/app/core/package.json
+      - ../../infrastructure/src:/app/infrastructure/src
+      - ../../infrastructure/index.ts:/app/infrastructure/index.ts
+      - ../../infrastructure/package.json:/app/infrastructure/package.json
+      - global-node_modules:/app/node_modules
+      - api-node_modules:/app/api/node_modules
+      - core-node_modules:/app/core/node_modules
+      - config-node_modules:/app/config/node_modules
+      - infrastructure-node_modules:/app/infrastructure/node_modules
+    links:
+      - db
+  db:
+    image: "postgres:9.6.2-alpine"
+    environment:
+      - POSTGRES_USER=dt-townies
+      - POSTGRES_PASSWORD=seinwotdt
+      - POSTGRES_MULTIPLE_DATABASES="dt-townies-test"
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - ./create_multi_dbs.sh:/docker-entrypoint-initdb.d/create_multi_dbs.sh
+      - db-pgdata:/var/lib/postgresql/data
+      - ../../tmp/dbdumps:/dbdumps
+    networks:
+      - backoffice
+
+volumes:
+  api-node_modules:
+  core-node_modules:
+  config-node_modules:
+  global-node_modules:
+  infrastructure-node_modules:
+  web-node_modules:
+  db-pgdata:
+
+networks:
+  internet:
+  backoffice:

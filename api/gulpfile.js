@@ -1,10 +1,6 @@
 const spawn = require("child_process").spawn;
-
-const del = require("del");
 const gulp = require("gulp");
-const batch = require("gulp-batch")
-const ts = require("gulp-typescript");
-const sourcemaps = require("gulp-sourcemaps");
+const batch = require("gulp-batch");
 const watch = require("gulp-watch");
 
 let node;
