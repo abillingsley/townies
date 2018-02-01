@@ -29,7 +29,7 @@ project/
 │       ├── sync_swagger_api.sh
 │       └── utility things
 ├── web/
-│      ├── front end things
+│      └──  front end things
 ├──.env
 ├──.envrc
 ├──.node-version
