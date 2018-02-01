@@ -151,3 +151,4 @@ There is more to do here but in the current code base we run 7MB for the web con
 - [ ] Provide a basic feature walkthrough to explain and show off the code structure and tooling
 - [ ] Refactor project script to remove hard coded behaviors, look at templating it out with mustache or something else simple
 - [ ] Write a guide to starting a new project that includes things like builds, releases, and other sprint 0 tasks
+- [ ] Finalize linting and provide setups for editors that don't directly integrate with _all_ of tslint
