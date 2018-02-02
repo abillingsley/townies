@@ -1,4 +1,5 @@
 
+import { TsConfigPathsPlugin } from "awesome-typescript-loader";
 import * as CopyWebpackPlugin from "copy-webpack-plugin";
 import * as HtmlWebpackPlugin from "html-webpack-plugin";
 import * as path from "path";
@@ -30,6 +31,9 @@ const config: webpack.Configuration = {
     modules: ["../../node_modules", "node_modules"],
     // Add ".ts" and ".tsx" as resolvable extensions.
     extensions: [".ts", ".tsx", ".js"],
+    plugins: [
+      new TsConfigPathsPlugin(),
+    ],
   },
 
   plugins: [
@@ -64,7 +68,7 @@ const config: webpack.Configuration = {
               plugins: ["react-hot-loader/babel"],
             },
           },
-          "awesome-typescript-loader", // (or awesome-typescript-loader)
+          "awesome-typescript-loader",
         ],
       },
       {
@@ -92,7 +96,6 @@ if (process.env.NODE_ENV === "development") {
       poll: 1000,
     },
   };
-
 } else {
   // Do Prod Build things
 }

@@ -22,6 +22,7 @@ export default [
       tagging: {
         mode: "tags",
       },
+      auth: false,
     },
   } as PluginRegistrationObject<any>,
   {
@@ -32,6 +33,7 @@ export default [
       swaggerOptions: {
         docExpansion: "list",
       },
+      auth: false,
     },
   } as PluginRegistrationObject<any>,
 ];

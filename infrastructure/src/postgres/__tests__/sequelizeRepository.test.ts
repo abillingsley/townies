@@ -3,10 +3,11 @@
 
 import * as Faker from "faker";
 import Knex = require("knex");
-import { Column, Length, Table } from "sequelize-typescript";
+import { Column, Length, Sequelize, Table } from "sequelize-typescript";
 import { BaseEntity, IMapper } from "~/core";
-import { Database, SequelizeRepository } from "~/infrastructure";
+import { ConsoleLogger, Database, SequelizeRepository } from "~/infrastructure";
 import BaseModel from "~/infrastructure/src/postgres/models/baseModel";
+import SequelizeConfig from "../sequelizefile";
 
 class FakeEntity extends BaseEntity {
   public name: string;
@@ -32,23 +33,26 @@ class FakeEntityMapper implements IMapper<FakeEntity> {
 class FakeRepository extends SequelizeRepository<FakeEntity, FakeModel> {}
 
 describe("SequelizeRepository", () => {
+  const sequelize = new Sequelize(SequelizeConfig);
+  const database = new Database(new ConsoleLogger(), sequelize);
   beforeAll(async () => {
-      await Database!.addModels([FakeModel]);
-      const knex =  Knex(require("../knexfile"))
-      const schema = knex.schema;
-      if (!(await schema.hasTable("fakes"))) {
-        await schema.createTable("fakes", (table: Knex.CreateTableBuilder) => {
-         table.increments();
-         table.string("name").notNullable().unique();
-         table.timestamps(true, true);
-         table.timestamp("deleted_at");
-        }).then();
-      }
-      await knex.destroy();
+    await database.connect();
+    sequelize.addModels([FakeModel]);
+    const knex = Knex(require("../knexfile"));
+    const schema = knex.schema;
+    if (!(await schema.hasTable("fakes"))) {
+      await schema.createTable("fakes", (table: Knex.CreateTableBuilder) => {
+        table.increments();
+        table.string("name").notNullable().unique();
+        table.timestamps(true, true);
+        table.timestamp("deleted_at");
+      });
+    }
+    await knex.destroy();
   });
 
-  afterAll(async() => {
-    await Database!.close();
+  afterAll(async () => {
+    await database.disconnect();
   });
 
   let repository: FakeRepository;

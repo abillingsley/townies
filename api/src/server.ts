@@ -1,6 +1,8 @@
 "use strict";
 
-import { Server as HapiServer } from "hapi";
+import { Request, Server as HapiServer } from "hapi";
+import { Identifiers, ILogger } from "~/core";
+import Container from "./container";
 import Plugins from "./plugins";
 import Routes from "./plugins/routes";
 
@@ -15,13 +17,13 @@ export class Server {
   constructor(options?: IServerOptions) {
     this.server = new HapiServer();
     this.server.connection(options);
-    // this.server.on("request-error", (request: Request, error: Error) => {
-    //   rollbar.error(request, error);
-    // });
+    this.server.on("request-error", (request: Request, error: Error) =>
+      Container.get<ILogger>(Identifiers.RemoteLogger).error(error),
+    );
   }
 
-  public async start(options?: IServerOptions): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
+  public async register(): Promise<HapiServer> {
+    return new Promise<HapiServer>((resolve, reject) => {
       this.server.register(Plugins, (registrationError: Error) => {
         if (registrationError) {
           reject(registrationError);
@@ -30,15 +32,21 @@ export class Server {
             if (routingError) {
               reject(routingError);
             } else {
-              this.server.start((err: Error) => {
-                if (err) {
-                  reject(err);
-                } else {
-                  resolve();
-                }
-              });
+              resolve(this.server);
             }
           });
+        }
+      });
+    });
+  }
+
+  public async start(): Promise<void> {
+    return this.register().then((server: HapiServer) => {
+      server.start((err: Error) => {
+        if (err) {
+          Promise.reject(err);
+        } else {
+          Promise.resolve();
         }
       });
     });

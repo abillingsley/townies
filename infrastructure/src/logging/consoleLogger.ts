@@ -34,7 +34,7 @@ export class ConsoleLogger implements ILogger {
     this.logger.warn.apply(this, [format].concat(params));
   }
 
-  public error(format: string, ...params: any[]): void {
+  public error(format: string | Error, ...params: any[]): void {
     this.logger.error.apply(this, [format].concat(params));
   }
 }

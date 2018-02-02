@@ -5,7 +5,7 @@ import { BaseError } from "./baseError";
 export class ValidationError extends BaseError {
   constructor(public message: string, public errors: string[]) {
     super(message);
-    this.name = "ValidationError";
+    Object.setPrototypeOf(this, ValidationError.prototype);
     this.message = "Validation Error";
     this.errors = errors || [];
 

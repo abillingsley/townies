@@ -6,4 +6,6 @@ export class Secrets {
   public static readonly DBName: string = process.env.DB_NAME || "dt-townies";
   public static readonly DBUser: string = process.env.DB_USER || "dt-townies";
   public static readonly DBPass: string = process.env.DB_PASS || "seinwotdt";
+
+  public static readonly RollbarAccessToken: string | undefined = process.env.ROLLBAR_ACCESS_TOKEN;
 }

@@ -1,8 +1,6 @@
 import * as React from "react";
 
-/* tslint:disable:no-empty-interface */
-interface IAppProps {}
-/* tslint:enable:no-empty-interface */
+interface IAppProps {} // tslint:disable-line:no-empty-interface
 
 const App = (props: IAppProps) => {
   return (
