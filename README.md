@@ -4,42 +4,54 @@
 
 ```
 project/
-├── core/
-│   ├── interfaces
-│   └── domain-concept/
-│       ├── entities
-│       ├── domain services
-│       └── request-response
-├── config/
-├── api/
-│   ├── web framework
-│   └── app services
+│
 ├── deployment/
 │   ├── development/
 │   ├── k8s/
 │   ├── rancher/
 │   └── xyz_tool/
-├── infrastructure/
-│   ├── logging/
-│   ├── postgres/
-│   ├── in_memory/
-│   └── xyz_implementation/
-├── native/
+│
+├── packages/
+│   ├── core/
+│   │   ├── interfaces
+│   │   └── domain-concept/
+│   │       ├── entities
+│   │       ├── domain services
+│   │       └── request-response
+│   │
+│   ├── config/
+│   │
+│   ├── native/
+│   │
+│   ├── api/
+│   │   ├── web framework
+│   │   └── app services
+│   │
+│   ├── infrastructure/
+│   │   ├── logging/
+│   │   ├── postgres/
+│   │   ├── in_memory/
+│   │   └── xyz_implementation/
+│   │
+│   ├── web/
+│   │   └── front end things
+│   │
+│   ├── Dockerfile.api
+│   ├── Dockerfile.web
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── tslint.json
+│
 ├── scripts/
 │   ├── sync_swagger_api.sh
 │   └── utility things
-├── web/
-│   └── front end things
+│
 ├── .env
 ├── .envrc
 ├── .node-version
-├── Dockerfile.api
-├── Dockerfile.web
-├── package.json
 ├── sonar-project.properties
 ├── townies (your project script)
-├── tsconfig.json
-└── tslint.json
+
 ```
 
 ## Getting Started with Docker and development
