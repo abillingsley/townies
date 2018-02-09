@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 REQUIRED_BASE_TOOLS=(
   "direnv"
 )
@@ -61,7 +60,7 @@ function _base_health_check() {
 
   # Verify correct environment is set
   if [ -z "${PROJECT_HOME}" ]; then
-  
+    echo "env var PROJECT_HOME is not set!"
     exit 1
   fi
 }
@@ -159,7 +158,7 @@ function cleanup_dump() {
 
 function sync_db_to_dev() {
   local srcEnv=$1
-  
+
   local prefix=$(date "+%Y-%m-%dT%H.%M.%S")
   local dumpFileName="${prefix}_${srcEnv}_dump.sql"
   dmpFile="${PROJECT_HOME}/tmp/dbdumps/${dumpFileName}"  # Purposefully not local for cleanup function
@@ -172,14 +171,14 @@ function sync_db_to_dev() {
   echo "Dropping local schema..."
   $DOCKER_COMPOSE exec --user postgres db >/dev/null -- psql video_application -e -c \
     'BEGIN; DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO postgres; GRANT ALL ON SCHEMA public TO public; COMMIT;'
-  
+
   echo "Loading dump file into local db..."
   $DOCKER_COMPOSE exec --user postgres db >/dev/null psql -q -f /dbdumps/$dumpFileName video_application
 }
 
 function sync_db_to_ci() {
   local srcEnv=$1
-  
+
   set -x
 
   local prefix=$(date "+%Y-%m-%dT%H.%M.%S")
@@ -332,7 +331,7 @@ function _k8s_task() {
   local task=$1; shift
 
   local namespace=$(map_env_to_k8s_namespace $env)
-  
+
   case $task in
     shell)
       local cmd_prefix="kubectl -n $namespace exec -it"
@@ -437,10 +436,10 @@ function help() {
   echo "    <env> db sync-to-ci:   (k8s only) Dumps the db in <env> and overwrites ci db with the contents"
   echo "    <env> db dump:         (k8s only) Dumps the db in <env> to a local file"
   echo ""
-  echo "    <env> nginx shell:     Runs bash inside a running nginx container in <env>"  
+  echo "    <env> nginx shell:     Runs bash inside a running nginx container in <env>"
   echo "    <env> nginx logs:      Tails the console logs of a running nginx container in <env>"
   echo ""
-  echo "    <env> redis shell:     Runs sh inside a running redis container in <env>"  
+  echo "    <env> redis shell:     Runs sh inside a running redis container in <env>"
   echo "    <env> redis logs:      Tails the console logs of a running redis container in <env>"
   echo "    <env> redis cli:       Runs redis-cli inside a running redis container in <env>"
   echo ""
