@@ -7,6 +7,9 @@ import * as webpack from "webpack";
 const PATHS = {
   src: path.join(__dirname, "src"),
   images: path.join(__dirname, "src", "assets", "images"),
+  ui: path.join(__dirname, "src", "ui"),
+  components: path.join(__dirname, "src", "ui", "components"),
+  routes: path.join(__dirname, "src", "ui", "rroutes")
 };
 
 const config: webpack.Configuration = {
