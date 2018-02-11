@@ -59,4 +59,9 @@ export class InMemoryListRepository<T extends BaseEntity> implements IRepository
       return Promise.reject(undefined);
     }
   }
+
+  public async drop(): Promise<void> {
+    this.dbContext.clear();
+  }
+
 }

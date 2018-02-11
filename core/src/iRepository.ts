@@ -11,4 +11,5 @@ export interface IRepository<T extends BaseEntity> {
   add(entity: T): Promise<T>;
   update(entity: T): Promise<void>;
   delete(entity: T): Promise<void>;
+  drop(): Promise<void>;
 }

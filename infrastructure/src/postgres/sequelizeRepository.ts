@@ -80,6 +80,11 @@ export class SequelizeRepository<T extends BaseEntity, U extends BaseModel<U>>
     });
   }
 
+  public async drop(): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      this.dbContext.truncate({ cascade: true, force: true }).then(resolve).catch(reject);
+    });
+  }
   protected normalizedError(err: SequelizeBaseError): BaseError {
     // TODO: map repository errors correctly
     if (err.name === "SequelizeUniqueConstraintError") {

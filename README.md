@@ -51,7 +51,6 @@ project/
 5.  Run `./townies dev start`
 6.  Run `open localhost:8080`
 
-
 ## Debugging
 
 [Node inspector](https://nodejs.org/en/docs/inspector) is for debugging.  We use the default port 9229 for debugging so you can use your favorite debugging tools to connect to the server.
@@ -99,7 +98,6 @@ Run `(cd infrastructure && yarn run db:migrate:rollback)`
 
 1. Start the development environment (`./townies dev start`)
 2. Run `sh ./scripts/update_api_client.sh`
-
 
 ## Docker Compose Explanations
 
