@@ -9,7 +9,7 @@ const PATHS = {
   images: path.join(__dirname, "src", "assets", "images"),
   ui: path.join(__dirname, "src", "ui"),
   components: path.join(__dirname, "src", "ui", "components"),
-  routes: path.join(__dirname, "src", "ui", "rroutes")
+  routes: path.join(__dirname, "src", "ui", "routes")
 };
 
 const config: webpack.Configuration = {
@@ -17,7 +17,7 @@ const config: webpack.Configuration = {
     // activate HMR for React
     "react-hot-loader/patch",
     "whatwg-fetch",
-    "./src/index.tsx",
+    "./src/ui/index.tsx",
   ],
   output: {
     path: path.join(__dirname, "dist"),
@@ -33,6 +33,10 @@ const config: webpack.Configuration = {
     modules: ["../../node_modules", "node_modules"],
     // Add ".ts" and ".tsx" as resolvable extensions.
     extensions: [".ts", ".tsx", ".js"],
+    alias: {
+      routes: PATHS.routes,
+      components: PATHS.components
+    }
   },
 
   plugins: [
