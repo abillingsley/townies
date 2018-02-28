@@ -8,4 +8,7 @@ export class Secrets {
   public static readonly DBPass: string = process.env.DB_PASS || "seinwotdt";
 
   public static readonly RollbarAccessToken: string | undefined = process.env.ROLLBAR_ACCESS_TOKEN;
+  public static readonly Auth0Domain: string = process.env.AUTH0_DOMAIN || "dt-townies.auth0.com";
+  public static readonly Auth0ResourceServer: string = process.env.AUTH0_RESOURCE_SERVER || "http://localhost:8080/api";
+  public static readonly Auth0WebClientID: string = process.env.AUTH0_WEB_CLIENT_ID || "2FPnIEGtRn22KC3q6nrEo9k6bxIRYL3D";
 }
