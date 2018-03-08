@@ -1,11 +1,17 @@
 # ---- Base ----
 FROM mhart/alpine-node:9.4.0 AS base
-RUN apk add --update openrc nginx bash && rm -rf /var/cache/apk/*
+
+ENV YARN_CACHE_FOLDER=/app/.yarn-cache
+
+RUN apk add --update openrc nginx bash \
+  && rm -rf /var/cache/apk/* \
+  && mkdir -p /run/nginx \
+  && mkdir -p /app/.yarn-cache
+
 WORKDIR /app
-# COPY web/nginx/default-vhost.conf /etc/nginx/conf.d/default.conf
+COPY web/nginx/default-vhost.conf /etc/nginx/conf.d/default.conf
 # TODO: Copy yarn.lock
 COPY package.json yarn.lock /app/
-COPY api/package.json /app/api/package.json
 COPY core/package.json /app/core/package.json
 COPY config/package.json /app/config/package.json
 COPY infrastructure/package.json /app/infrastructure/package.json
@@ -15,6 +21,8 @@ RUN yarn
 # ---- Development ----
 # Don't copy anything -- compose will do that.
 FROM base as development
+ENV YARN_CACHE_FOLDER=/app/.yarn-cache
+COPY --from=base /app /app
 WORKDIR /app
 
 # ---- Build ----
@@ -24,7 +32,6 @@ COPY . /app
 RUN cd web && NODE_ENV=production /app/node_modules/.bin/webpack --output-path /app/_html_tmp
 
 # ---- Release ----
-# TODO: extract to own dockerfile
-# FROM nginx:stable-alpine AS release
-# COPY --from=build /app/_html_tmp /usr/share/nginx/html
-# COPY web/nginx/default-vhost.prod.conf etc/nginx/conf.d/default.conf
+FROM nginx:stable-alpine AS release
+COPY --from=build /app/_html_tmp /usr/share/nginx/html
+COPY web/nginx/default-vhost.prod.conf etc/nginx/conf.d/default.conf

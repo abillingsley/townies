@@ -102,20 +102,6 @@ if (process.env.NODE_ENV === "development") {
     watchOptions: {
       poll: 1000,
     },
-    proxy: [{
-      context: [
-        "/api",
-        "/documentation",
-        "/swagger",
-        "/health_check",
-      ],
-      target: "http://api:3000",
-      secure: false,
-    }, {
-      context: ["/ws"],
-      target: "http://api:3001",
-      secure: false,
-    }],
   };
 } else {
   // Do Prod Build things

@@ -4,12 +4,13 @@ version: '3.4'
 #  - "HOST:CONTAINER"
 services:
   web:
-    command: bash -c "yarn run web:start"
+    command: bash -c "nginx; yarn run web:start"
     environment:
       NODE_ENV: development
       PORT: 8080
     ports:
-      - "8080:8080"
+      # HOST:Container-nginx
+      - "8080:80"
 
   api:
     command: bash -c 'cd /app; (yarn run watch &); yarn run api:start'
