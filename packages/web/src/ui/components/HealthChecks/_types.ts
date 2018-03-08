@@ -12,7 +12,7 @@ export type IStatusPresentationProps = (
 
 interface IHealthChecker {
   url: string;
-  component: (props: IStatusPresentationProps) => Element;
+  component: any;
 }
 
 export type IHealthCheckerProps = (

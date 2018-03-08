@@ -1,8 +1,7 @@
 import * as React from "react";
 
-import { HealthChecker } from "./HealthChecker";
-import { StatusPresentation } from "./StatusPresentation";
-
+import { HealthChecker } from "./Containers/HealthChecker";
+import { StatusPresentation } from "./Presentation/Status";
 export class APIHealth extends React.Component {
   public render() {
     return (

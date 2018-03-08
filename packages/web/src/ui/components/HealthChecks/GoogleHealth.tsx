@@ -1,13 +1,13 @@
 import * as React from "react";
 
-import { HealthChecker } from "./HealthChecker";
-import { StatusPresentation } from "./StatusPresentation";
+import { HealthChecker } from "./Containers/HealthChecker";
+import { StatusPresentation } from "./Presentation/Status";
 
 export class GoogleHealth extends React.Component {
   public render() {
     return (
       <HealthChecker
-        name="API Server"
+        name="Google"
         url="/health_check"
         component={StatusPresentation}
         />

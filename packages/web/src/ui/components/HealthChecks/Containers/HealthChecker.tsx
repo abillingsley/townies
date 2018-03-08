@@ -1,13 +1,18 @@
 import * as React from "react";
 
-import { IHealthCheckerProps as IProps } from "./_types";
+import { IHealthCheckerProps as IProps } from "../_types";
 
 import { measureTime } from "~/helpers/time";
 
 const CHECK_INTERVAL = 1000; // ms
 
 export class HealthChecker extends React.Component<IProps> {
-  public healthCheckInterval: number;
+  // have to use any type here because there is a
+  // conflict with setInterval's return type between
+  // the browser (number), and NodeJS (Timer)
+  // ts-node provides the Timer type def, which overrides
+  // the browser type.
+  public healthCheckInterval: any;
 
   public state = { status: "", ping: Infinity };
 

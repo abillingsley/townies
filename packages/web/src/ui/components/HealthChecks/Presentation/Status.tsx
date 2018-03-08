@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { IStatusPresentationProps as IProps } from "./_types";
+import { IStatusPresentationProps as IProps } from "../_types";
 
 export function StatusPresentation(props: IProps) {
   const { name, status, ping } = props;
