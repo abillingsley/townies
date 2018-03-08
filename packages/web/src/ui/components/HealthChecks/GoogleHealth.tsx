@@ -8,7 +8,7 @@ export class GoogleHealth extends React.Component {
     return (
       <HealthChecker
         name="Google"
-        url="/health_check"
+        url="https://google.com"
         component={StatusPresentation}
         />
     );

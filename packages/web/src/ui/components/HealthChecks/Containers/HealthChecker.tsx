@@ -4,7 +4,7 @@ import { IHealthCheckerProps as IProps } from "../_types";
 
 import { measureTime } from "~/helpers/time";
 
-const CHECK_INTERVAL = 1000; // ms
+const CHECK_INTERVAL = 3000; // ms
 
 export class HealthChecker extends React.Component<IProps> {
   // have to use any type here because there is a
@@ -27,7 +27,9 @@ export class HealthChecker extends React.Component<IProps> {
   public check = async () => {
     const { url } = this.props;
 
-    const [result, time] = await measureTime<Promise<Response>>(() => fetch(url));
+    const [result, time] = await measureTime<Promise<Response>>(
+      () => fetch(url, { mode: "no-cors" }),
+    );
 
     const status = await result.text();
 
