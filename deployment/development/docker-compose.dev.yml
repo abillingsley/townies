@@ -1,16 +1,18 @@
 version: '3.4'
 
+# NOTE: Port mapping is:
+#  - "HOST:CONTAINER"
 services:
   web:
-    command: bash -c "mkdir /run/nginx && nginx ; mkdir -p /app/node_modules/.yarn-cache; cd /app && yarn --cache-folder /app/node_modules/.yarn-cache && npm run web:start"
+    command: bash -c "yarn run web:start"
     environment:
       NODE_ENV: development
       PORT: 8080
     ports:
-      - "8080:80"
+      - "8080:8080"
 
   api:
-    command: bash -c 'mkdir -p /app/node_modules/.yarn-cache; cd /app && yarn --cache-folder /app/node_modules/.yarn-cache && ./deployment/development/wait-for-it.sh db:5432 && cd infrastructure && npm run db:migrate; cd /app; (npm run watch &); npm run api:start'
+    command: bash -c 'cd /app; (yarn run watch &); yarn run api:start'
     environment:
       NODE_ENV: development
       DB_NAME: dt-townies

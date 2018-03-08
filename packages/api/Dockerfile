@@ -10,15 +10,16 @@ COPY infrastructure/package.json /app/infrastructure/package.json
 RUN yarn
 
 # ---- Development ----
+# Don't copy anything -- compose will do that.
 FROM base as development
 WORKDIR /app
-COPY . .
-RUN yarn
-RUN /app/node_modules/.bin/tsc
 
 # ---- Release ----
 FROM mhart/alpine-node:9.4.0 AS release
 WORKDIR /app
-COPY --from=development /app /app
+COPY . .
+COPY --from=base /app /app
+RUN yarn
+RUN /app/node_modules/.bin/tsc
 EXPOSE 3000
 CMD ["node", "dist/api/src/index.js"]

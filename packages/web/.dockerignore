@@ -1,0 +1,4 @@
+# Context is 'packages'
+/api
+/native
+/node_modules

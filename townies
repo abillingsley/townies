@@ -83,6 +83,12 @@ function stop_dev() {
   $DOCKER_COMPOSE down --remove-orphans
 }
 
+function build_dev() {
+  echo "Building the dev enviroment..."
+
+  $DOCKER_COMPOSE build $@
+}
+
 function start_dev() {
   _dev_env_health_check
 
@@ -232,6 +238,9 @@ function _dev_task() {
     ;;
     stop)
       stop_dev
+    ;;
+    build)
+      build_dev
     ;;
     test)
       start_test_watching
