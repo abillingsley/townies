@@ -6,7 +6,7 @@ import { measureTime } from "~/helpers/time";
 
 const CHECK_INTERVAL = 3000; // ms
 
-export class HealthChecker extends React.Component<IProps> {
+export class HealthChecker extends React.Component<IProps, {}> {
   // have to use any type here because there is a
   // conflict with setInterval's return type between
   // the browser (number), and NodeJS (Timer)
