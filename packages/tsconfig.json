@@ -16,7 +16,7 @@
     "sourceMap": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "target": "es2017",
+    "target": "es6",
     "module": "commonjs",
     "jsx": "react",
     "lib": [
@@ -30,7 +30,11 @@
     "outDir": "dist",
     "rootDir": ".",
     "paths": {
-      "~/*": ["*"]
+      "~/*": ["*", "web/src/*"],
+      "ui/*": ["web/src/ui/*"],
+      "routes/*": ["web/src/ui/routes/*"],
+      "components/*": ["web/src/ui/components/*"],
+      "routePaths": ["web/src/ui/routePaths.ts"]
     },
     "typeRoots": [
       "node_modules/@types",

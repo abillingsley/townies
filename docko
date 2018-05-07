@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+
+REQUIRED_DEV_TOOLS=(
+  "docker"
+  "docker-compose"
+)
+
+REQUIRED_DEPLOY_TOOLS=(
+  "kubectl"
+)
+
+PROJECT_FOLDER_NAME=${PWD##*/}
+COMPOSE_PROJECT_NAME=$PROJECT_FOLDER_NAME
+FULL_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+COMPOSE_DEV_PATH="$FULL_PATH/deployment/development/docker-compose.dev.yml"
+COMPOSE_TEST_PATH="$FULL_PATH/deployment/development/docker-compose.test.yml"
+COMPOSE_FILE_PATH="$FULL_PATH/deployment/development/docker-compose.yml"
+
+COMPOSE="docker-compose -p ${COMPOSE_PROJECT_NAME} -f $COMPOSE_FILE_PATH -f $COMPOSE_DEV_PATH"
+COMPOSE_TEST="docker-compose -p ${COMPOSE_PROJECT_NAME} -f $COMPOSE_FILE_PATH -f $COMPOSE_TEST_PATH"
+
+function rundocko {
+  local target_env=$1
+  local arguments=${@:2}
+
+  case $target_env in
+    dev)     _dev_task $arguments;;
+
+    # TODO: implement these
+    ci)      _env_task $arguments;;
+    staging) _env_task $arguments;;
+    prod)    _env_task $arguments;;
+    *)
+      help
+      exit 1
+    ;;
+  esac
+}
+
+function _dev_task() {
+  # First arg
+  given_command=$1
+  # The rest of the args
+  arguments=${@:2}
+
+  case $given_command in
+    up)       ${COMPOSE} up;;
+    up:build) ${COMPOSE} up --build;;
+
+    ui)   ${COMPOSE} run --rm web bash;;
+    api)  ${COMPOSE} run --rm api bash;;
+
+    db:psql)    ${COMPOSE} exec db bash -c "psql --username \$POSTGRES_USER --dbname=\$POSTGRES_DB";;
+    db:migrate) ${COMPOSE} run --rm api bash -c "cd /app/infrastructure && yarn run db:migrate";;
+
+
+    *)
+      # start, stop, build, etc
+      echo "Forwarding to docker-compose ... $@"
+
+      ${COMPOSE} $@
+    ;;
+  esac
+}
+
+function help() {
+  echo "Usage: <env> option [option...]";
+  echo ""
+  echo "Local environment-only actions:"
+  echo "    dev up:       ups the compose containers"
+  echo "    dev up:build: runs docker-compose up --build"
+  echo "    dev * :       forwards args to docker-compose"
+  echo ""
+  echo "    dev db:psql:         execs psql on the running db container"
+  echo "    dev db:migrate:      runs the infrastructure migrations"
+  echo ""
+  echo ""
+  echo "Miscellaneous functions:"
+  echo "    help:                  These instructions."
+  echo ""
+}
+
+function _verify_tools() {
+  local REQUIRED_TOOLS=("$@")
+
+  for x in "${REQUIRED_TOOLS[@]}"; do
+    type -P "$x" >/dev/null
+
+    if [ $? -ne 0 ]; then
+      echo "$x is required, but wasn't found"
+      exit 1
+    fi
+  done
+}
+
+function _base_health_check() {
+  _verify_tools "${REQUIRED_BASE_TOOLS[@]}"
+}
+
+function _deploy_env_health_check() {
+  _base_health_check
+  _verify_tools "${REQUIRED_DEPLOY_TOOLS[@]}"
+}
+
+function _dev_env_health_check() {
+  _base_health_check
+  _verify_tools "${REQUIRED_DEV_TOOLS[@]}"
+}
+
+# Also allow non-sourced running
+if [ $1 ]; then
+  _dev_env_health_check
+  rundocko $*
+fi

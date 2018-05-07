@@ -1,25 +1,28 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import {AppContainer} from "react-hot-loader";
+import { AppContainer } from "react-hot-loader";
+import { BrowserRouter as Router } from "react-router-dom";
 
-import App from "./components/App";
+import { ApplicationIndex } from "routes/index";
 
 const rootDOMElement = document.getElementById("app");
 
 const render = (AppComponent: any) => {
   ReactDOM.render(
       <AppContainer >
-        <AppComponent />
+        <Router>
+          <AppComponent />
+        </Router>
       </AppContainer >,
     rootDOMElement,
   );
 };
 
-render(App);
+render(ApplicationIndex);
 
 if ((module as any).hot) {
-  (module as any).hot.accept("./components/App", () => {
-    const NextApp = require("./components/App").default; // tslint:disable-line no-var-requires
+  (module as any).hot.accept("./routes/index", () => {
+    const NextApp = require("./routes/index").default; // tslint:disable-line no-var-requires
     render(NextApp);
   });
 }

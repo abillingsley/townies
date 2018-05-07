@@ -9,7 +9,8 @@ const PATHS = {
   images: path.join(__dirname, "src", "assets", "images"),
   ui: path.join(__dirname, "src", "ui"),
   components: path.join(__dirname, "src", "ui", "components"),
-  routes: path.join(__dirname, "src", "ui", "routes")
+  routes: path.join(__dirname, "src", "ui", "routes"),
+  routePaths: path.join(__dirname, "src", "ui", "routePaths.ts"),
 };
 
 const config: webpack.Configuration = {
@@ -35,8 +36,11 @@ const config: webpack.Configuration = {
     extensions: [".ts", ".tsx", ".js"],
     alias: {
       routes: PATHS.routes,
-      components: PATHS.components
-    }
+      components: PATHS.components,
+      ui: PATHS.ui,
+      routePaths: PATHS.routePaths,
+      ["~"]: PATHS.src,
+    },
   },
 
   plugins: [
@@ -99,7 +103,6 @@ if (process.env.NODE_ENV === "development") {
       poll: 1000,
     },
   };
-
 } else {
   // Do Prod Build things
 }
